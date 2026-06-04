@@ -23,6 +23,7 @@ function getRelationStyle(text: string): string {
 
 function formatRelation(r: any): string {
   if (typeof r === 'string') return r
+  if (r.desc) return r.desc
   if (r.description) return r.description
   if (r.type && r.items) return `${r.items.join('')}${r.type}`
   return JSON.stringify(r)

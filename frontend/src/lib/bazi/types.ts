@@ -106,8 +106,8 @@ export interface BaziResult {
   yuanHaiZiping: {
     yueLing: any
     taiSui: any
-    shenQiang: number
-    shidu: number
+    shenQiang: any
+    shidu: any
   }
 
   // Raw data for export

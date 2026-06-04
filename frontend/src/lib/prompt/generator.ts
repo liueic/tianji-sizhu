@@ -80,7 +80,8 @@ ${input.name ? `- 备注：${input.name}` : ''}
 
 ## 日主信息
 - 日主：${result.dayMaster}（${result.dayMasterWuXing}）
-- 身强/身弱指数：${result.yuanHaiZiping.shenQiang}（湿度：${result.yuanHaiZiping.shidu}）
+- 身强/身弱：${typeof result.yuanHaiZiping.shenQiang === 'object' ? `${result.yuanHaiZiping.shenQiang.judge}（得分${result.yuanHaiZiping.shenQiang.score}/阈值${result.yuanHaiZiping.shenQiang.threshold}）` : result.yuanHaiZiping.shenQiang}
+- 寒暖燥湿：${typeof result.yuanHaiZiping.shidu === 'object' ? `${result.yuanHaiZiping.shidu.judge}（得分${result.yuanHaiZiping.shidu.score}）` : result.yuanHaiZiping.shidu}
 
 ## 五行力量
 | 木 | 火 | 土 | 金 | 水 |
@@ -139,13 +140,13 @@ ${xiyong.join('\n')}
   if (result.ganRelations && result.ganRelations.length > 0) {
     prompt += `
 ## 天干关系
-${result.ganRelations.map((r: any) => typeof r === 'string' ? r : JSON.stringify(r)).join('、')}
+${result.ganRelations.map((r: any) => typeof r === 'string' ? r : (r.desc || JSON.stringify(r))).join('、')}
 `
   }
   if (result.zhiRelations && result.zhiRelations.length > 0) {
     prompt += `
 ## 地支关系
-${result.zhiRelations.map((r: any) => typeof r === 'string' ? r : JSON.stringify(r)).join('、')}
+${result.zhiRelations.map((r: any) => typeof r === 'string' ? r : (r.desc || JSON.stringify(r))).join('、')}
 `
   }
 

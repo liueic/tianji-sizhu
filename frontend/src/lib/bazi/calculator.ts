@@ -83,19 +83,19 @@ function mapPillar(p: any) {
   return {
     gan: p.gan || '',
     zhi: p.zhi || '',
-    hideGan: p.hideGan || '',
-    wuXing: p.wuXing || '',
+    hideGan: Array.isArray(p.hideGan) ? p.hideGan.join('') : (p.hideGan || ''),
+    wuXing: Array.isArray(p.wuXing) ? p.wuXing.join('') : (p.wuXing || ''),
     naYin: p.naYin || '',
-    shiShenGan: p.shiShenGan || '',
-    shiShenZhi: p.shiShenZhi || '',
-    diShi: p.diShi || '',
+    shiShenGan: Array.isArray(p.shiShenGan) ? p.shiShenGan.join('/') : (p.shiShenGan || ''),
+    shiShenZhi: Array.isArray(p.shiShenZhi) ? p.shiShenZhi.join('/') : (p.shiShenZhi || ''),
+    diShi: Array.isArray(p.diShi) ? p.diShi.join('/') : (p.diShi || ''),
     xun: p.xun || '',
     xunKong: p.xunKong || '',
     hideGanAttr: (p.hideGanAttr || []).map((h: any) => ({
-      gan: h.gan,
-      qiLevel: h.qiLevel,
-      wuXing: h.wuXing,
-      shiShen: h.shiShen,
+      gan: h.gan || '',
+      qiLevel: h.qiLevel || '',
+      wuXing: h.wuXing || '',
+      shiShen: h.shiShen || '',
     })),
   }
 }

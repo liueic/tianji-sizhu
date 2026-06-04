@@ -118,7 +118,13 @@ function Result() {
           <h3 className="text-sm text-gray-400 mb-2">日主</h3>
           <div className="text-2xl font-bold">{result.dayMaster}（{result.dayMasterWuXing}）</div>
           <div className="text-sm text-gray-400 mt-2">
-            身强指数：{result.yuanHaiZiping.shenQiang} | 湿度：{result.yuanHaiZiping.shidu}
+            {typeof result.yuanHaiZiping.shenQiang === 'object'
+              ? `${result.yuanHaiZiping.shenQiang.judge}（得分：${result.yuanHaiZiping.shenQiang.score}）`
+              : `身强指数：${result.yuanHaiZiping.shenQiang}`}
+            {' | '}
+            {typeof result.yuanHaiZiping.shidu === 'object'
+              ? `${result.yuanHaiZiping.shidu.judge}（寒暖：${result.yuanHaiZiping.shidu.score}）`
+              : `湿度：${result.yuanHaiZiping.shidu}`}
           </div>
         </div>
         <div className="bg-gray-800 rounded-lg p-4">
