@@ -1,13 +1,14 @@
 {
   "name": "tianji-sizhu",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "deploy": "bun run build && wrangler pages deploy dist"
   },
   "dependencies": {
     "echarts": "^5.5.1",
@@ -26,6 +27,7 @@
     "tailwindcss": "^3.4.10",
     "typescript": "^5.5.4",
     "vite": "^5.4.2",
-    "vitest": "1.6.0"
+    "vitest": "1.6.0",
+    "wrangler": "^3.0.0"
   }
 }

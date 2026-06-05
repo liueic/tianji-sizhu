@@ -16,7 +16,7 @@ function Settings() {
         <div className="panel-traditional p-6">
           <h2 className="text-base font-heading text-gold/80 mb-3 tracking-wide-cn border-b border-bronze/20 pb-2">关于天机四柱</h2>
           <div className="space-y-2 text-sm text-[var(--text-secondary)]">
-            <p>版本：v0.1.0</p>
+            <p>版本：v0.2.0</p>
             <p>开源四柱排盘，为 AI 解读而生</p>
             <p className="mt-3">
               排盘算法：
@@ -52,8 +52,8 @@ function Settings() {
         <div className="panel-traditional p-6">
           <h2 className="text-base font-heading text-gold/80 mb-3 tracking-wide-cn border-b border-bronze/20 pb-2">数据存储</h2>
           <div className="space-y-2 text-sm text-[var(--text-secondary)]">
-            <p>排盘记录保存在本地 SQLite 数据库中，完全离线，不上传任何数据。</p>
-            <p className="text-[var(--text-tertiary)]">数据位置：~/.tianji-sizhu/charts.db</p>
+            <p>排盘记录保存在浏览器 IndexedDB 中，完全本地存储，不上传任何数据。</p>
+            <p className="text-[var(--text-tertiary)]">清除浏览器数据会导致记录丢失，建议定期导出备份。</p>
             <p className="mt-2">支持导出为 JSON 文件，方便备份和迁移。</p>
           </div>
         </div>

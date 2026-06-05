@@ -4,6 +4,7 @@ import { calculateBazi } from '../lib/bazi/calculator'
 import { generatePrompt, getTemplateList } from '../lib/prompt/generator'
 import type { PromptTemplate } from '../lib/prompt/generator'
 import type { BaziResult, BaziInput } from '../lib/bazi/types'
+import { saveChart } from '../lib/storage/db'
 import PillarCard from '../components/PillarCard'
 import FiveElementRadar from '../components/FiveElementRadar'
 import DaYunTimeline from '../components/DaYunTimeline'
@@ -38,7 +39,6 @@ function Result() {
     const prompt = generatePrompt(result, input, template)
     let success = false
 
-    // Method 1: navigator.clipboard (requires HTTPS or localhost)
     if (navigator.clipboard?.writeText) {
       try {
         await navigator.clipboard.writeText(prompt)
@@ -46,16 +46,6 @@ function Result() {
       } catch { /* blocked on non-secure context */ }
     }
 
-    // Method 2: Wails binding
-    if (!success && (window as any)?.go?.main) {
-      try {
-        const { CopyToClipboard } = await import('../../wailsjs/go/main/App')
-        await CopyToClipboard(prompt)
-        success = true
-      } catch { /* Wails not available */ }
-    }
-
-    // Method 3: legacy execCommand fallback (works on HTTP)
     if (!success) {
       try {
         const textarea = document.createElement('textarea')
@@ -77,15 +67,18 @@ function Result() {
   const handleSave = async () => {
     if (!result || !input) return
     try {
-      const { SaveChart } = await import('../../wailsjs/go/main/App')
-      await SaveChart(
-        input.name || '未命名',
-        input.gender,
-        input.year, input.month, input.day, input.hour,
-        input.calendar,
-        JSON.stringify(result.rawData),
-        ''
-      )
+      await saveChart({
+        name: input.name || '未命名',
+        gender: input.gender,
+        birthYear: input.year,
+        birthMonth: input.month,
+        birthDay: input.day,
+        birthHour: input.hour,
+        calendar: input.calendar,
+        chartData: JSON.stringify(result.rawData),
+        notes: '',
+        createdAt: new Date().toISOString(),
+      })
       alert('保存成功！')
     } catch (e) {
       console.error('save failed', e)

@@ -1,14 +1,9 @@
-# Go
-/build/
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# Dependencies
+node_modules/
 
-# Frontend
-frontend/node_modules/
-frontend/dist/
+# Build output
+dist/
+build/
 
 # IDE
 .idea/
@@ -20,9 +15,5 @@ frontend/dist/
 .DS_Store
 Thumbs.db
 
-# Database
-*.db
-
 # Temp
 /tmp/
-frontend/package.json.md5

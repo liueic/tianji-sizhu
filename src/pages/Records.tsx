@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-interface ChartSummary {
-  id: number
-  name: string
-  gender: number
-  createdAt: string
-}
+import { listCharts, deleteChart, exportAllCharts, downloadJSON } from '../lib/storage/db'
+import type { ChartSummary } from '../lib/storage/db'
 
 function Records() {
   const navigate = useNavigate()
@@ -18,11 +13,9 @@ function Records() {
   }, [])
 
   const loadRecords = async () => {
-    if (!(window as any)?.go?.main) return
     try {
-      const { ListCharts } = await import('../../wailsjs/go/main/App')
-      const list = await ListCharts()
-      setRecords(list || [])
+      const list = await listCharts()
+      setRecords(list)
     } catch (e) {
       console.error('load records failed', e)
     }
@@ -31,8 +24,7 @@ function Records() {
   const handleDelete = async (id: number) => {
     if (!confirm('确定要删除这条记录吗？')) return
     try {
-      const { DeleteChart } = await import('../../wailsjs/go/main/App')
-      await DeleteChart(id)
+      await deleteChart(id)
       loadRecords()
     } catch (e) {
       console.error('delete failed', e)
@@ -41,27 +33,10 @@ function Records() {
 
   const handleExport = async () => {
     try {
-      const { ExportChartsJSON, SaveFileDialog, WriteFile } = await import('../../wailsjs/go/main/App')
-      const json = await ExportChartsJSON()
-      const path = await SaveFileDialog('tianji-export.json')
-      if (path) {
-        await WriteFile(path, json)
-        alert('导出成功！')
-      }
+      const charts = await exportAllCharts()
+      downloadJSON(charts, 'tianji-export.json')
     } catch (e) {
-      try {
-        const { ExportChartsJSON } = await import('../../wailsjs/go/main/App')
-        const json = await ExportChartsJSON()
-        const blob = new Blob([json], { type: 'application/json' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'tianji-export.json'
-        a.click()
-        URL.revokeObjectURL(url)
-      } catch (e2) {
-        console.error('export failed', e2)
-      }
+      console.error('export failed', e)
     }
   }
 
