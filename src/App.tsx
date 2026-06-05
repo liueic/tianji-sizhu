@@ -39,14 +39,26 @@ function NavBar() {
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-ink-900 text-parchment-300 font-body">
+      <div className="min-h-screen flex flex-col bg-ink-900 text-parchment-300 font-body">
         <NavBar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/result" element={<Result />} />
-          <Route path="/records" element={<Records />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
+        <div className="flex-1">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/result" element={<Result />} />
+            <Route path="/records" element={<Records />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </div>
+        <footer className="py-4 text-center text-xs text-[var(--text-tertiary)] border-t border-bronze/20">
+          <a
+            href="https://github.com/hhx465453939/tianji-sizhu"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-gold transition-colors"
+          >
+            GitHub · 天机四柱
+          </a>
+        </footer>
       </div>
     </BrowserRouter>
   )

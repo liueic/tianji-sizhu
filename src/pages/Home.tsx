@@ -30,12 +30,12 @@ function Home() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-8">
-      <h1 className="font-heading text-3xl text-gold tracking-traditional mb-1">天机四柱</h1>
-      <div className="divider-traditional w-48 my-4" />
-      <p className="text-[var(--text-secondary)] mb-8 text-sm tracking-wide-cn">开源四柱排盘 · 为 AI 解读而生</p>
+    <div className="flex flex-col items-center px-4 py-8 sm:py-12">
+      <h1 className="font-heading text-2xl sm:text-3xl text-gold tracking-traditional mb-1">天机四柱</h1>
+      <div className="divider-traditional w-36 sm:w-48 my-3 sm:my-4" />
+      <p className="text-[var(--text-secondary)] mb-6 sm:mb-8 text-xs sm:text-sm tracking-wide-cn">开源四柱排盘 · 为 AI 解读而生</p>
 
-      <form onSubmit={handleSubmit} className="w-full max-w-md corner-deco corner-deco-bottom panel-traditional p-8 space-y-5">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm sm:max-w-md corner-deco corner-deco-bottom panel-traditional p-5 sm:p-8 space-y-4 sm:space-y-5">
         <div>
           <label className="block text-xs text-[var(--text-tertiary)] mb-1.5 tracking-wide-cn">姓名/备注</label>
           <input
@@ -43,17 +43,17 @@ function Home() {
             value={form.name}
             onChange={e => update('name', e.target.value)}
             placeholder="可选"
-            className="w-full px-4 py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 placeholder:text-[var(--text-muted)] focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/30"
+            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 placeholder:text-[var(--text-muted)] focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold/30"
           />
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-3 sm:gap-4">
           <div className="flex-1">
             <label className="block text-xs text-[var(--text-tertiary)] mb-1.5 tracking-wide-cn">性别</label>
             <select
               value={form.gender}
               onChange={e => update('gender', parseInt(e.target.value))}
-              className="w-full px-4 py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 focus:outline-none focus:border-gold"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 focus:outline-none focus:border-gold"
             >
               <option value={0}>男</option>
               <option value={1}>女</option>
@@ -64,7 +64,7 @@ function Home() {
             <select
               value={form.calendar}
               onChange={e => update('calendar', parseInt(e.target.value))}
-              className="w-full px-4 py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 focus:outline-none focus:border-gold"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 focus:outline-none focus:border-gold"
             >
               <option value={0}>阳历</option>
               <option value={1}>阴历</option>
@@ -72,7 +72,7 @@ function Home() {
           </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-3 sm:gap-4">
           <div className="flex-1">
             <label className="block text-xs text-[var(--text-tertiary)] mb-1.5 tracking-wide-cn">年</label>
             <input
@@ -81,7 +81,7 @@ function Home() {
               max={2100}
               value={form.year}
               onChange={e => update('year', parseInt(e.target.value))}
-              className="w-full px-4 py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 focus:outline-none focus:border-gold"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 focus:outline-none focus:border-gold"
             />
           </div>
           <div className="flex-1">
@@ -92,7 +92,7 @@ function Home() {
               max={12}
               value={form.month}
               onChange={e => update('month', parseInt(e.target.value))}
-              className="w-full px-4 py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 focus:outline-none focus:border-gold"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 focus:outline-none focus:border-gold"
             />
           </div>
           <div className="flex-1">
@@ -103,7 +103,7 @@ function Home() {
               max={31}
               value={form.day}
               onChange={e => update('day', parseInt(e.target.value))}
-              className="w-full px-4 py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 focus:outline-none focus:border-gold"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 focus:outline-none focus:border-gold"
             />
           </div>
         </div>
@@ -113,7 +113,7 @@ function Home() {
           <select
             value={form.hour}
             onChange={e => update('hour', parseInt(e.target.value))}
-            className="w-full px-4 py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 focus:outline-none focus:border-gold"
+            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-ink-800 border border-bronze/30 rounded-sm text-parchment-300 focus:outline-none focus:border-gold"
           >
             {HOURS.map((h, i) => (
               <option key={i} value={i}>{h}</option>
@@ -123,7 +123,7 @@ function Home() {
 
         <button
           type="submit"
-          className="w-full py-3 btn-primary-cn rounded-sm font-heading text-base tracking-traditional"
+          className="w-full py-2.5 sm:py-3 btn-primary-cn rounded-sm font-heading text-base tracking-traditional"
         >
           排 盘
         </button>
@@ -131,7 +131,7 @@ function Home() {
         <button
           type="button"
           onClick={() => navigate('/records')}
-          className="w-full py-2.5 bg-ink-700 hover:bg-ink-600 border border-bronze/20 rounded-sm text-[var(--text-secondary)] text-sm transition-colors"
+          className="w-full py-2 sm:py-2.5 bg-ink-700 hover:bg-ink-600 border border-bronze/20 rounded-sm text-[var(--text-secondary)] text-sm transition-colors"
         >
           查看历史记录
         </button>
