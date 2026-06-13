@@ -1,15 +1,19 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { calculateBazi } from '../lib/bazi/calculator'
+import { useEffect, useState, useMemo, useCallback } from 'react'
+import { calculateBazi, calculateShenshaForDate, calculateLiuYueForYear, calculateDaYunAllLiuNian, getNaYin } from '../lib/bazi/calculator'
+import type { LiuYueItem } from '../lib/bazi/calculator'
 import { generatePrompt, getTemplateList } from '../lib/prompt/generator'
 import type { PromptTemplate } from '../lib/prompt/generator'
-import type { BaziResult, BaziInput } from '../lib/bazi/types'
+import type { BaziResult, BaziInput, DaYunItem, PromptContext } from '../lib/bazi/types'
 import { saveChart } from '../lib/storage/db'
 import PillarCard from '../components/PillarCard'
 import FiveElementRadar from '../components/FiveElementRadar'
 import DaYunTimeline from '../components/DaYunTimeline'
+import LiuNianList from '../components/LiuNianList'
+import LiuYuePanel from '../components/LiuYuePanel'
 import ShenshaPanel from '../components/ShenshaPanel'
 import RelationsPanel from '../components/RelationsPanel'
+import DetailedAnalysis from '../components/DetailedAnalysis'
 
 function Result() {
   const location = useLocation()
@@ -18,6 +22,19 @@ function Result() {
   const [error, setError] = useState<string>('')
   const [copied, setCopied] = useState(false)
   const [template, setTemplate] = useState<PromptTemplate>('comprehensive')
+
+  const [selectedDaYunYear, setSelectedDaYunYear] = useState<number | undefined>(undefined)
+  const [selectedLiuNianYear, setSelectedLiuNianYear] = useState<number | undefined>(undefined)
+  const [selectedLiuYueMonth, setSelectedLiuYueMonth] = useState<number | undefined>(undefined)
+
+  const [liunianShensha, setLiunianShensha] = useState<{
+    shensha: BaziResult['shensha']
+    currentYun: BaziResult['currentYun']
+  } | null>(null)
+
+  const [liuyueArr, setLiuyueArr] = useState<LiuYueItem[]>([])
+  const [liuyueLoading, setLiuyueLoading] = useState(false)
+
   const input = location.state as BaziInput | null
 
   useEffect(() => {
@@ -34,9 +51,121 @@ function Result() {
     }
   }, [input])
 
+  const currentDaYunStart = result?.currentYun?.daYun?.startYear
+
+  // Auto-select current DaYun on mount
+  useEffect(() => {
+    if (result && currentDaYunStart !== undefined) {
+      setSelectedDaYunYear(currentDaYunStart)
+    }
+  }, [result, currentDaYunStart])
+
+  const selectedDaYun: DaYunItem | null = useMemo(() => {
+    if (!result?.dayunArr) return null
+    const year = selectedDaYunYear ?? currentDaYunStart
+    if (year === undefined) return null
+    return result.dayunArr.find(dy => dy.startYear === year) || null
+  }, [result?.dayunArr, selectedDaYunYear, currentDaYunStart])
+
+  const selectedLiuNian = useMemo(() => {
+    if (!selectedDaYun?.liunianArr) return null
+    if (selectedLiuNianYear !== undefined) {
+      return selectedDaYun.liunianArr.find(ln => ln.year === selectedLiuNianYear) || null
+    }
+    const currentYear = new Date().getFullYear()
+    return selectedDaYun.liunianArr.find(ln => ln.year === currentYear) || null
+  }, [selectedDaYun, selectedLiuNianYear])
+
+  // When selectedLiuNian changes, recalculate shensha + liuyue
+  useEffect(() => {
+    if (!input || !result || !selectedLiuNian) return
+    const targetYear = selectedLiuNian.year
+
+    setSelectedLiuYueMonth(undefined)
+
+    try {
+      const data = calculateShenshaForDate(input, targetYear)
+      setLiunianShensha(data)
+    } catch (e) {
+      console.error('Failed to calculate shensha for year', targetYear, e)
+      setLiunianShensha(null)
+    }
+
+    setLiuyueLoading(true)
+    const timer = setTimeout(() => {
+      try {
+        const months = calculateLiuYueForYear(input, targetYear)
+        setLiuyueArr(months)
+        const currentYear = new Date().getFullYear()
+        if (targetYear === currentYear) {
+          setSelectedLiuYueMonth(new Date().getMonth() + 1)
+        }
+      } catch (e) {
+        console.error('Failed to calculate liuYue for year', targetYear, e)
+        setLiuyueArr([])
+      } finally {
+        setLiuyueLoading(false)
+      }
+    }, 0)
+
+    return () => clearTimeout(timer)
+  }, [input, result, selectedLiuNian])
+
+  const displayShensha = useMemo(() => {
+    if (!result?.shensha) return undefined
+    const base = { ...result.shensha }
+
+    if (liunianShensha?.shensha?.current) {
+      return { ...base, current: liunianShensha.shensha.current }
+    }
+
+    const effectiveDaYunYear = selectedDaYunYear ?? currentDaYunStart
+    if (effectiveDaYunYear !== currentDaYunStart) {
+      return { ...base, current: undefined }
+    }
+
+    return base
+  }, [result?.shensha, liunianShensha, selectedDaYunYear, currentDaYunStart])
+
+  const handleDaYunSelect = useCallback((startYear: number) => {
+    setSelectedDaYunYear(startYear)
+    setSelectedLiuNianYear(undefined)
+    setSelectedLiuYueMonth(undefined)
+    setLiuyueArr([])
+  }, [])
+
+  const handleLiuNianSelect = useCallback((year: number) => {
+    setSelectedLiuNianYear(year)
+  }, [])
+
+  const handleLiuYueSelect = useCallback((month: number) => {
+    setSelectedLiuYueMonth(month)
+  }, [])
+
   const handleCopyPrompt = async () => {
     if (!result || !input) return
-    const prompt = generatePrompt(result, input, template)
+
+    let allLiuNianData: PromptContext['allLiuNianData']
+    if (selectedDaYun) {
+      try {
+        allLiuNianData = calculateDaYunAllLiuNian(input, selectedDaYun)
+      } catch (e) {
+        console.error('Failed to batch calculate liunian data for prompt', e)
+      }
+    }
+
+    const promptContext: PromptContext = {
+      selectedDaYun: selectedDaYun || undefined,
+      selectedLiuNian: selectedLiuNian || undefined,
+      liunianShensha: liunianShensha?.shensha?.current
+        ? { daYun: liunianShensha.shensha.current.daYun || [], liuNian: liunianShensha.shensha.current.liuNian || [] }
+        : undefined,
+      liuYueArr: liuyueArr.length > 0 ? liuyueArr : undefined,
+      selectedLiuYueMonth: selectedLiuYueMonth,
+      allLiuNianData,
+    }
+
+    const prompt = generatePrompt(result, input, template, promptContext)
     let success = false
 
     if (navigator.clipboard?.writeText) {
@@ -98,7 +227,7 @@ function Result() {
 
   if (!result) return <div className="p-8 text-center text-[var(--text-secondary)]">计算中...</div>
 
-  const currentDaYunStart = result.currentYun?.daYun?.startYear
+  const isViewingCurrent = (selectedDaYunYear ?? currentDaYunStart) === currentDaYunStart
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -107,10 +236,18 @@ function Result() {
         <div>
           <h1 className="text-xl font-semibold font-heading text-gold tracking-wide-cn">排盘结果</h1>
           {input && (
-            <p className="text-[var(--text-secondary)] text-sm mt-1">
-              {input.name && `${input.name} · `}
-              {input.gender === 0 ? '男' : '女'} · {input.year}年{input.month}月{input.day}日
-            </p>
+            <>
+              <p className="text-[var(--text-secondary)] text-sm mt-1">
+                {input.name && `${input.name} · `}
+                {input.gender === 0 ? '男' : '女'} · {input.year}年{input.month}月{input.day}日
+                <span className="text-[var(--text-muted)] ml-1">（{input.calendar === 0 ? '阳历' : '阴历'}）</span>
+              </p>
+              {result.lunarDate && (
+                <p className="text-[var(--text-muted)] text-xs mt-0.5">
+                  农历：{result.lunarDate.fullString}
+                </p>
+              )}
+            </>
           )}
         </div>
         <div className="flex gap-2">
@@ -149,10 +286,10 @@ function Result() {
         <div className="panel-traditional p-4">
           <h3 className="text-xs text-gold/70 mb-2 font-heading tracking-wide-cn border-b border-bronze/20 pb-2">特殊宫位</h3>
           <div className="grid grid-cols-2 gap-2 text-sm text-[var(--text-secondary)]">
-            <div>胎元：{result.taiYuan}</div>
-            <div>命宫：{result.mingGong}</div>
-            <div>胎息：{result.taiXi}</div>
-            <div>身宫：{result.shenGong}</div>
+            <div>胎元：{result.taiYuan}（{result.taiYuanNaYin}）</div>
+            <div>命宫：{result.mingGong}（{result.mingGongNaYin}）</div>
+            <div>胎息：{result.taiXi}（{result.taiXiNaYin}）</div>
+            <div>身宫：{result.shenGong}（{result.shenGongNaYin}）</div>
           </div>
         </div>
       </div>
@@ -162,41 +299,125 @@ function Result() {
         <FiveElementRadar wuXingPower={result.wuXingPower} />
       </div>
 
-      {/* DaYun Timeline */}
+      {/* Fortune Start Info */}
+      {result.yunInfo.startSolar && (
+        <div className="panel-traditional p-4 mb-6">
+          <h3 className="text-xs text-gold/70 mb-2 font-heading tracking-wide-cn border-b border-bronze/20 pb-2">起运信息</h3>
+          <div className="grid grid-cols-3 gap-4 text-sm text-[var(--text-secondary)]">
+            <div>
+              <span className="text-[var(--text-muted)]">排盘方式：</span>
+              <span className="text-parchment-100">{result.yunInfo.forward ? '顺排' : '逆排'}</span>
+            </div>
+            <div>
+              <span className="text-[var(--text-muted)]">起运年龄：</span>
+              <span className="text-parchment-100">{result.yunInfo.startYear}岁{result.yunInfo.startMonth ? ` ${result.yunInfo.startMonth}个月` : ''}</span>
+            </div>
+            <div>
+              <span className="text-[var(--text-muted)]">起运时间：</span>
+              <span className="text-parchment-100">{result.yunInfo.startSolar}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DaYun Timeline (clickable) */}
       <div className="mb-6">
-        <DaYunTimeline dayunArr={result.dayunArr} currentStartYear={currentDaYunStart} />
+        <DaYunTimeline
+          dayunArr={result.dayunArr}
+          currentStartYear={currentDaYunStart}
+          selectedStartYear={selectedDaYunYear ?? currentDaYunStart}
+          onSelect={handleDaYunSelect}
+        />
       </div>
 
-      {/* Current Fortune */}
-      {result.currentYun?.daYun && (
+      {/* LiuNian List for selected DaYun */}
+      {selectedDaYun && (
+        <div className="mb-6">
+          <LiuNianList
+            dayun={selectedDaYun}
+            selectedLiuNianYear={selectedLiuNianYear}
+            onSelectLiuNian={handleLiuNianSelect}
+          />
+        </div>
+      )}
+
+      {/* Selected DaYun / LiuNian Info */}
+      {selectedDaYun && (
         <div className="panel-traditional p-4 mb-6">
-          <h3 className="text-xs text-gold/70 mb-2 font-heading tracking-wide-cn border-b border-bronze/20 pb-2">当前运势</h3>
-          <div className="flex gap-6">
+          <h3 className="text-xs text-gold/70 mb-2 font-heading tracking-wide-cn border-b border-bronze/20 pb-2">
+            {isViewingCurrent ? '当前运势' : '运势详情'}
+          </h3>
+          <div className="flex gap-6 flex-wrap">
             <div>
               <span className="text-[var(--text-tertiary)] text-sm">大运：</span>
               <span className="text-lg font-bold font-ganzhi text-parchment-100">
-                {Array.isArray(result.currentYun.daYun.ganZhi)
-                  ? result.currentYun.daYun.ganZhi.join('')
-                  : result.currentYun.daYun.ganZhi}
+                {Array.isArray(selectedDaYun.ganZhi) ? selectedDaYun.ganZhi.join('') : selectedDaYun.ganZhi}
+              </span>
+              <span className="text-xs text-[var(--text-muted)] ml-1">
+                {getNaYin(Array.isArray(selectedDaYun.ganZhi) ? selectedDaYun.ganZhi.join('') : selectedDaYun.ganZhi)}
               </span>
               <span className="text-xs text-[var(--text-muted)] ml-2">
-                ({result.currentYun.daYun.startYear}-{result.currentYun.daYun.endYear})
+                ({selectedDaYun.startYear}-{selectedDaYun.startYear + 9}年)
+              </span>
+              <span className="text-xs text-[var(--text-tertiary)] ml-2">
+                {selectedDaYun.ganshen}/{selectedDaYun.zhishen}
               </span>
             </div>
-            {result.currentYun.liuNian && (
+            {selectedLiuNian && (
               <div>
                 <span className="text-[var(--text-tertiary)] text-sm">流年：</span>
                 <span className="text-lg font-bold font-ganzhi text-parchment-100">
-                  {Array.isArray(result.currentYun.liuNian.ganZhi)
-                    ? result.currentYun.liuNian.ganZhi.join('')
-                    : result.currentYun.liuNian.ganZhi}
+                  {Array.isArray(selectedLiuNian.ganZhi) ? selectedLiuNian.ganZhi.join('') : selectedLiuNian.ganZhi}
+                </span>
+                <span className="text-xs text-[var(--text-muted)] ml-1">
+                  {getNaYin(Array.isArray(selectedLiuNian.ganZhi) ? selectedLiuNian.ganZhi.join('') : selectedLiuNian.ganZhi)}
                 </span>
                 <span className="text-xs text-[var(--text-muted)] ml-2">
-                  ({result.currentYun.liuNian.year}年 {result.currentYun.liuNian.age}岁)
+                  ({selectedLiuNian.year}年)
+                </span>
+                <span className="text-xs text-[var(--text-tertiary)] ml-2">
+                  {selectedLiuNian.ganshen}/{selectedLiuNian.zhishen}
                 </span>
               </div>
             )}
           </div>
+
+          {displayShensha?.current && (
+            <div className="mt-3 border-t border-bronze/20 pt-3">
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {displayShensha.current.daYun?.map((s, i) => (
+                  <span key={`dy-${i}`} className="px-2 py-0.5 rounded-sm text-xs border-2 border-gold/40 bg-gold/10 text-gold font-heading">
+                    大运·{s}
+                  </span>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {displayShensha.current.liuNian?.map((s, i) => (
+                  <span key={`ln-${i}`} className="px-2 py-0.5 rounded-sm text-xs border-2 border-jade/40 bg-jade/10 text-jade-light font-heading">
+                    流年·{s}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* LiuYue Panel */}
+      {selectedLiuNian && (
+        <div className="mb-6">
+          {liuyueLoading ? (
+            <div className="panel-traditional p-4 text-center text-[var(--text-secondary)]">
+              计算流月中...
+            </div>
+          ) : (
+            <LiuYuePanel
+              liuYueArr={liuyueArr}
+              selectedMonth={selectedLiuYueMonth}
+              onSelectMonth={handleLiuYueSelect}
+              targetYear={selectedLiuNian.year}
+            />
+          )}
         </div>
       )}
 
@@ -213,15 +434,20 @@ function Result() {
       )}
 
       {/* Shensha Panel */}
-      {result.shensha && (
+      {displayShensha && (
         <div className="mb-6">
-          <ShenshaPanel shensha={result.shensha} />
+          <ShenshaPanel shensha={displayShensha} />
         </div>
       )}
 
       {/* Relations Panel */}
       <div className="mb-6">
         <RelationsPanel ganRelations={result.ganRelations} zhiRelations={result.zhiRelations} />
+      </div>
+
+      {/* Detailed Analysis Accordion */}
+      <div className="mb-6">
+        <DetailedAnalysis result={result} />
       </div>
 
       {/* AI Prompt Section */}

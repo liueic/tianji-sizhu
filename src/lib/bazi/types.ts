@@ -1,4 +1,5 @@
 import type { WuXing } from 'mystilight-8char'
+import type { LunarDateInfo } from '../lunar'
 
 export interface BaziPillar {
   gan: string
@@ -12,6 +13,8 @@ export interface BaziPillar {
   xun: string
   xunKong: string
   hideGanAttr: { gan: string; qiLevel: string; wuXing: string; shiShen: string }[]
+  ziZuo?: string
+  xingYunZhi?: string
 }
 
 export interface DaYunItem {
@@ -75,6 +78,7 @@ export interface BaziResult {
     startYear: number
     startMonth: number
     startDay: number
+    startHour: number
     startSolar: string
   }
   dayunArr: DaYunItem[]
@@ -110,6 +114,15 @@ export interface BaziResult {
     shidu: any
   }
 
+  // Extended analysis
+  spouseAppearance?: any
+  familyBackground?: any
+  selfAppearance?: any
+  educationAndTalent?: any
+
+  // Lunar date info
+  lunarDate: LunarDateInfo | null
+
   // Raw data for export
   rawData: any
 }
@@ -122,4 +135,23 @@ export interface BaziInput {
   day: number
   hour: number
   calendar: number
+}
+
+export interface PromptContext {
+  selectedDaYun?: DaYunItem
+  selectedLiuNian?: { year: number; ganZhi: string; ganshen: string; zhishen: string }
+  liunianShensha?: {
+    daYun: string[]
+    liuNian: string[]
+  }
+  liuYueArr?: { month: number; ganZhi: string; shiShen: string; liuYueShensha: string[] }[]
+  selectedLiuYueMonth?: number
+  allLiuNianData?: {
+    year: number
+    ganZhi: string
+    ganshen: string
+    zhishen: string
+    daYunShensha: string[]
+    liuNianShensha: string[]
+  }[]
 }

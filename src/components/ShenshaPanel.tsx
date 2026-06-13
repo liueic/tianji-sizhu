@@ -36,7 +36,8 @@ function getShenshaStyle(name: string): string {
 export default function ShenshaPanel({ shensha }: Props) {
   const hasShensha = PILLAR_LABELS.some(p => shensha[p.key]?.length > 0)
   const hasCurrentShensha = shensha.current &&
-    (shensha.current.daYun?.length > 0 || shensha.current.liuNian?.length > 0)
+    (shensha.current.daYun?.length > 0 || shensha.current.liuNian?.length > 0 ||
+     shensha.current.liuYue?.length > 0 || shensha.current.liuRi?.length > 0)
 
   if (!hasShensha && !hasCurrentShensha) return null
 
@@ -78,6 +79,16 @@ export default function ShenshaPanel({ shensha }: Props) {
             {shensha.current?.liuNian?.map((s, i) => (
               <span key={`ln-${i}`} className="px-2 py-0.5 rounded-sm text-xs border-2 border-jade/40 bg-jade/10 text-jade-light font-heading">
                 流年·{s}
+              </span>
+            ))}
+            {shensha.current?.liuYue?.map((s, i) => (
+              <span key={`ly-${i}`} className="px-2 py-0.5 rounded-sm text-xs border-2 border-[#7c5cbf]/40 bg-[#7c5cbf]/10 text-[#b69cf0] font-heading">
+                流月·{s}
+              </span>
+            ))}
+            {shensha.current?.liuRi?.map((s, i) => (
+              <span key={`lr-${i}`} className="px-2 py-0.5 rounded-sm text-xs border-2 border-water/40 bg-water/10 text-[#6b9bc3] font-heading">
+                流日·{s}
               </span>
             ))}
           </div>

@@ -20,6 +20,11 @@ export interface ChartSummary {
   id: number
   name: string
   gender: number
+  birthYear: number
+  birthMonth: number
+  birthDay: number
+  birthHour: number
+  calendar: number
   createdAt: string
 }
 
@@ -72,6 +77,11 @@ export async function listCharts(): Promise<ChartSummary[]> {
         id: r.id!,
         name: r.name,
         gender: r.gender,
+        birthYear: r.birthYear,
+        birthMonth: r.birthMonth,
+        birthDay: r.birthDay,
+        birthHour: r.birthHour,
+        calendar: r.calendar,
         createdAt: r.createdAt,
       }))
       all.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
