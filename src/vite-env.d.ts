@@ -1,5 +1,8 @@
 /// <reference types="vite/client" />
 
+// Injected by vite.config.ts `define` from package.json.
+declare const __APP_VERSION__: string
+
 declare module 'lunar-javascript' {
   export class Solar {
     static fromYmdHms(year: number, month: number, day: number, hour: number, minute: number, second: number): Solar

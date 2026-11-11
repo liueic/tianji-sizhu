@@ -5,29 +5,29 @@ interface Props {
   result: BaziResult
 }
 
-function Accordion({ title, icon, defaultOpen = false, children }: {
+/** Accordion section component */
+function Accordion({ title, defaultOpen = false, children }: {
   title: string
-  icon: string
   defaultOpen?: boolean
   children: React.ReactNode
 }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="border border-bronze/20 rounded-sm overflow-hidden">
+    <div className="overflow-hidden rounded-sm border border-line-1">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-2.5 bg-ink-800/50 hover:bg-ink-700/50 transition-colors text-left"
+        className="flex w-full items-center justify-between bg-surface-3/40 px-4 py-2.5 text-left transition-colors hover:bg-surface-4/45"
       >
         <span className="flex items-center gap-2">
-          <span className="text-sm">{icon}</span>
-          <span className="text-sm font-heading text-gold/80 tracking-wide-cn">{title}</span>
+          <span className="h-3 w-[2px] bg-accent-seal/70" aria-hidden="true" />
+          <span className="font-heading text-sm tracking-wide-cn text-accent-gold">{title}</span>
         </span>
         <span className={`text-xs text-[var(--text-muted)] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
           ▼
         </span>
       </button>
       {open && (
-        <div className="px-4 py-3 border-t border-bronze/10 text-sm text-[var(--text-secondary)] space-y-2">
+        <div className="space-y-2 border-t border-line-2 px-4 py-3 text-sm text-fg-2">
           {children}
         </div>
       )}
@@ -35,6 +35,7 @@ function Accordion({ title, icon, defaultOpen = false, children }: {
   )
 }
 
+/** Score badge component */
 function ScoreBadge({ score, label }: { score: number | string; label?: string }) {
   const num = typeof score === 'number' ? score : parseInt(String(score))
   const color = num >= 80 ? 'text-jade-light border-jade/40 bg-jade/10'
@@ -55,6 +56,7 @@ export default function DetailedAnalysis({ result }: Props) {
   const yl = yhz?.yueLing
   const ts = yhz?.taiSui
 
+  // Check if we have any data to show
   const hasYHZ = !!(yl?.summary || ts?.taiSui || (typeof sq === 'object' && sq.breakdown) || yy)
   const hasAnalysis = !!(result.analysis.SanMingTongHui?.length || result.analysis.rishi?.length)
   const hasSpouse = !!result.spouseAppearance
@@ -66,12 +68,14 @@ export default function DetailedAnalysis({ result }: Props) {
 
   return (
     <div className="panel-traditional p-4">
-      <h3 className="text-xs text-gold/70 mb-3 font-heading tracking-wide-cn border-b border-bronze/20 pb-2">
+      <h3 className="mb-3 border-b border-line-1 pb-2 font-heading text-xs tracking-wide-cn text-accent-gold">
         详细分析
       </h3>
       <div className="space-y-2">
+        {/* 渊海子平详解 */}
         {hasYHZ && (
-          <Accordion title="渊海子平详解" icon="📜" defaultOpen={true}>
+          <Accordion title="渊海子平详解" defaultOpen={true}>
+            {/* Month command analysis */}
             {yl?.summary && (
               <div>
                 <div className="text-xs text-gold/60 mb-1.5 font-heading">月令分析</div>
@@ -111,10 +115,11 @@ export default function DetailedAnalysis({ result }: Props) {
               </div>
             )}
 
+            {/* Tai Sui */}
             {ts?.taiSui && (
               <div className="border-t border-bronze/10 pt-2 mt-2">
                 <div className="text-xs text-gold/60 mb-1.5 font-heading">太岁分析</div>
-                <div className="flex items-center gap-3 text-xs">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                   <span>太岁：<span className="font-ganzhi text-parchment-100">{ts.taiSui.gan}{ts.taiSui.zhi}</span></span>
                   <span>关系：<span className={ts.relation?.includes('克') ? 'text-cinnabar-light' : 'text-jade-light'}>{ts.relation || '—'}</span></span>
                   <span>风险：<ScoreBadge score={ts.riskLevel === '高' ? 30 : ts.riskLevel === '中' ? 60 : 90} label={ts.riskLevel} /></span>
@@ -127,10 +132,11 @@ export default function DetailedAnalysis({ result }: Props) {
               </div>
             )}
 
+            {/* Body strength breakdown */}
             {typeof sq === 'object' && sq.breakdown?.ganScores && (
               <div className="border-t border-bronze/10 pt-2 mt-2">
                 <div className="text-xs text-gold/60 mb-1.5 font-heading">身强弱分解</div>
-                <div className="flex items-center gap-2 mb-1">
+                <div className="mb-1 flex flex-wrap items-center gap-2">
                   <ScoreBadge score={sq.score} label={sq.judge} />
                   <span className="text-xs text-[var(--text-muted)]">阈值：{sq.threshold}</span>
                   {sq.breakdown.supportStems && (
@@ -139,7 +145,7 @@ export default function DetailedAnalysis({ result }: Props) {
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {Object.entries(sq.breakdown.ganScores as Record<string, number>)
-                    .filter(([, v]) => (v as number) > 0)
+                    .filter(([k, v]) => (v as number) > 0 && !/^(stem|branch)/i.test(k))
                     .sort(([, a], [, b]) => (b as number) - (a as number))
                     .map(([k, v]) => (
                       <span key={k} className={`px-1.5 py-0.5 rounded-sm text-xs border ${
@@ -153,6 +159,7 @@ export default function DetailedAnalysis({ result }: Props) {
               </div>
             )}
 
+            {/* Yin-Yang */}
             {yy && typeof yy === 'object' && (
               <div className="border-t border-bronze/10 pt-2 mt-2">
                 <div className="flex items-center gap-2 text-xs">
@@ -163,6 +170,7 @@ export default function DetailedAnalysis({ result }: Props) {
               </div>
             )}
 
+            {/* Cold/Warm breakdown */}
             {typeof sd === 'object' && sd.breakdown?.parts && (
               <div className="border-t border-bronze/10 pt-2 mt-2">
                 <div className="flex items-center gap-2 mb-1 text-xs">
@@ -170,10 +178,12 @@ export default function DetailedAnalysis({ result }: Props) {
                   <ScoreBadge score={sd.score} label={sd.judge} />
                 </div>
                 <div className="flex flex-wrap gap-1.5 text-xs">
-                  {Object.entries(sd.breakdown.parts as Record<string, number>).map(([k, v]) => (
+                  {Object.entries(sd.breakdown.parts as Record<string, number>)
+                    .filter(([k]) => !/^(stem|branch)/i.test(k))
+                    .map(([k, v]) => (
                     <span key={k} className={`px-1.5 py-0.5 rounded-sm border ${
                       (v as number) > 0 ? 'border-cinnabar/30 bg-cinnabar/10 text-cinnabar-light'
-                      : 'border-water/30 bg-water/10 text-[#6b9bc3]'
+                      : 'border-wx-water/30 bg-wx-water/10 text-accent-azure'
                     }`}>
                       {k}:{String(v)}
                     </span>
@@ -184,13 +194,15 @@ export default function DetailedAnalysis({ result }: Props) {
           </Accordion>
         )}
 
+        {/* 三命通会 & 日时断语 */}
         {hasAnalysis && (
-          <Accordion title="经典断语" icon="📖" defaultOpen={false}>
+          <Accordion title="经典断语" defaultOpen={false}>
             {result.analysis.SanMingTongHui?.length > 0 && (
               <div>
                 <div className="text-xs text-gold/60 mb-1.5 font-heading">三命通会</div>
                 <div className="space-y-1.5">
                   {result.analysis.SanMingTongHui.filter((s: string) => s?.trim()).map((s: string, i: number) => {
+                    // Extract [tag] prefix
                     const match = s.match(/^【(.+?)】(.*)/)
                     if (match) {
                       return (
@@ -218,11 +230,12 @@ export default function DetailedAnalysis({ result }: Props) {
           </Accordion>
         )}
 
+        {/* 配偶信息 */}
         {hasSpouse && (
-          <Accordion title="配偶信息" icon="💑" defaultOpen={false}>
+          <Accordion title="配偶信息" defaultOpen={false}>
             <div className="flex items-center gap-2 mb-2">
               <ScoreBadge score={result.spouseAppearance.score} />
-              <span className="text-xs text-parchment-100">{result.spouseAppearance.description}</span>
+              <span className="text-xs text-fg-1">{result.spouseAppearance.description}</span>
             </div>
             {result.spouseAppearance.details?.length > 0 && (
               <div className="space-y-1">
@@ -234,11 +247,12 @@ export default function DetailedAnalysis({ result }: Props) {
           </Accordion>
         )}
 
+        {/* 家庭背景 */}
         {hasFamily && (
-          <Accordion title="家庭背景" icon="🏠" defaultOpen={false}>
+          <Accordion title="家庭背景" defaultOpen={false}>
             <div className="flex items-center gap-2 mb-2">
               <ScoreBadge score={result.familyBackground.score} />
-              <span className="text-xs text-parchment-100">{result.familyBackground.description}</span>
+              <span className="text-xs text-fg-1">{result.familyBackground.description}</span>
             </div>
             {result.familyBackground.details?.length > 0 && (
               <div className="space-y-1">
@@ -250,8 +264,9 @@ export default function DetailedAnalysis({ result }: Props) {
           </Accordion>
         )}
 
+        {/* 个人特质 */}
         {hasSelf && (
-          <Accordion title="个人特质" icon="👤" defaultOpen={false}>
+          <Accordion title="个人特质" defaultOpen={false}>
             <div className="flex items-center gap-2 mb-2">
               <ScoreBadge score={result.selfAppearance.appearanceScore} label="外貌" />
               {result.selfAppearance.attractivenessOpposite && (
@@ -259,7 +274,7 @@ export default function DetailedAnalysis({ result }: Props) {
               )}
             </div>
             {result.selfAppearance.description && (
-              <div className="text-xs text-parchment-100 mb-1">{result.selfAppearance.description}</div>
+              <div className="mb-1 text-xs text-fg-1">{result.selfAppearance.description}</div>
             )}
             {result.selfAppearance.characteristics?.length > 0 && (
               <div className="space-y-1">
@@ -271,14 +286,15 @@ export default function DetailedAnalysis({ result }: Props) {
           </Accordion>
         )}
 
+        {/* 学历天赋 */}
         {hasEducation && (
-          <Accordion title="学历与天赋" icon="🎓" defaultOpen={false}>
+          <Accordion title="学历与天赋" defaultOpen={false}>
             <div className="flex items-center gap-2 mb-2">
               <ScoreBadge score={result.educationAndTalent.educationScore} label={result.educationAndTalent.educationLevel} />
               <ScoreBadge score={result.educationAndTalent.talentScore} label={result.educationAndTalent.talentLevel} />
             </div>
             {result.educationAndTalent.description && (
-              <div className="text-xs text-parchment-100 mb-1">{result.educationAndTalent.description}</div>
+              <div className="mb-1 text-xs text-fg-1">{result.educationAndTalent.description}</div>
             )}
             {result.educationAndTalent.details?.length > 0 && (
               <div className="space-y-1">
