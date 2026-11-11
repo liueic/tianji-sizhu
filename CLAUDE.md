@@ -36,9 +36,14 @@
 - 排盘算法: `src/lib/bazi/calculator.ts`
 - 存储层: `src/lib/storage/db.ts`
 - Prompt 生成: `src/lib/prompt/generator.ts`
+- 主题系统: `src/lib/theme/index.ts`（`useTheme`/`initTheme`，默认亮色）
+- 设计令牌: `src/style.css`（`[data-theme]` 定义） + `tailwind.config.js`（颜色映射）
 - 页面: `src/pages/`
 - 组件: `src/components/`
 - Vite 配置: `vite.config.ts`
+
+> 主题说明：颜色类名（含旧名 `ink-*`/`parchment-*`/`gold` 等）均映射到 CSS 变量，
+> 主题切换无需改组件；新增颜色请使用语义令牌 `surface-*`/`fg-*`/`line-*`/`accent-*`/`wx-*`。
 
 ## 构建命令
 
@@ -64,4 +69,4 @@ bun run deploy
 Cloudflare Pages 配置：
 - Build command: `bun run build`
 - Build output directory: `dist`
-- 已配置 `_redirects` 支持 SPA 路由
+- SPA 路由由 `wrangler.jsonc` 的 `assets.not_found_handling: single-page-application` 处理
