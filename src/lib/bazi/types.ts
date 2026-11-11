@@ -13,7 +13,9 @@ export interface BaziPillar {
   xun: string
   xunKong: string
   hideGanAttr: { gan: string; qiLevel: string; wuXing: string; shiShen: string }[]
+  /** Self-sitting 12-life-cycle position */
   ziZuo?: string
+  /** Fortune-branch 12-life-cycle position */
   xingYunZhi?: string
 }
 
@@ -114,13 +116,18 @@ export interface BaziResult {
     shidu: any
   }
 
-  // Extended analysis
+  // ── NEW: Extended analysis data ──
+
+  /** Spouse appearance analysis */
   spouseAppearance?: any
+  /** Family background analysis */
   familyBackground?: any
+  /** Self appearance analysis */
   selfAppearance?: any
+  /** Education and talent analysis */
   educationAndTalent?: any
 
-  // Lunar date info
+  // Lunar date info (converted from the effective solar date)
   lunarDate: LunarDateInfo | null
 
   // Raw data for export
@@ -137,6 +144,7 @@ export interface BaziInput {
   calendar: number
 }
 
+/** Context for prompt generation: carries user's current UI selections */
 export interface PromptContext {
   selectedDaYun?: DaYunItem
   selectedLiuNian?: { year: number; ganZhi: string; ganshen: string; zhishen: string }
@@ -146,6 +154,7 @@ export interface PromptContext {
   }
   liuYueArr?: { month: number; ganZhi: string; shiShen: string; liuYueShensha: string[] }[]
   selectedLiuYueMonth?: number
+  /** Full 10-year liunian data with shensha for comprehensive prompt */
   allLiuNianData?: {
     year: number
     ganZhi: string
